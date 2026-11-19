@@ -1,15 +1,20 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/includes/bootstrap.php';
 
-$user  = require_role($pdo, 'seeker');
-$needs = seeker_needs($pdo, (int) $user['id']);
+// Halaman publik: tamu boleh melihat. Perusahaan diarahkan ke dashboard-nya.
+$user = auth_user($pdo);
+if ($user !== null && $user['role'] === 'company') {
+    redirect('/company/dashboard.php');
+}
 
-$q      = trim((string) ($_GET['q'] ?? ''));
-$type   = (string) ($_GET['type'] ?? '');
-$accId  = get_int('acc');
-$types  = ['Penuh waktu', 'Paruh waktu', 'Kontrak', 'Magang', 'Remote'];
+$needs = $user !== null ? seeker_needs($pdo, (int) $user['id']) : [];
+
+$q     = trim((string) ($_GET['q'] ?? ''));
+$type  = (string) ($_GET['type'] ?? '');
+$accId = get_int('acc');
+$types = ['Penuh waktu', 'Paruh waktu', 'Kontrak', 'Magang', 'Remote'];
 
 $jobs  = jobs_with_score($pdo, $needs, ['q' => $q, 'type' => $type, 'acc' => $accId]);
 $per   = 6;
@@ -19,34 +24,44 @@ $shown = array_slice($jobs, ($page - 1) * $per, $per);
 
 $master = accommodation_names($pdo);
 
-// Buang parameter page saat menyusun link paginasi.
 $query = array_filter(['q' => $q, 'type' => $type, 'acc' => $accId ?: ''], fn ($v) => $v !== '');
 function page_url(array $query, int $page): string
 {
-    return u('/seeker/dashboard.php?' . http_build_query($query + ['page' => $page]));
+    return u('/lowongan.php?' . http_build_query($query + ['page' => $page]));
 }
 
-$pageTitle = 'Lowongan';
-$active    = 'dash';
-require __DIR__ . '/../includes/header.php';
+$pageTitle = 'Jelajah lowongan';
+$active    = 'jobs';
+require __DIR__ . '/includes/header.php';
 ?>
 <section class="section">
   <div class="wrap">
     <div class="section__head">
       <div>
-        <p class="kicker">Untukmu</p>
+        <p class="kicker">Jelajah</p>
         <h1 class="section__title">Lowongan terbuka</h1>
       </div>
-      <p class="section__lede">Diurutkan dari kecocokan tertinggi dengan kebutuhanmu.</p>
+      <p class="section__lede">
+        <?php if ($user === null): ?>
+          Masuk untuk melihat skor kecocokan kebutuhanmu.
+        <?php else: ?>
+          Diurutkan dari kecocokan tertinggi dengan kebutuhanmu.
+        <?php endif; ?>
+      </p>
     </div>
 
-    <?php if ($needs === []): ?>
+    <?php if ($user === null): ?>
+      <p class="alert alert--warn" role="status">
+        Fasilitas tiap lowongan bisa dilihat tanpa akun.
+        <a href="<?= u('/auth/register.php') ?>">Daftar</a> atau <a href="<?= u('/auth/login.php') ?>">masuk</a> untuk melihat berapa yang cocok dengan kebutuhanmu.
+      </p>
+    <?php elseif ($needs === []): ?>
       <p class="alert alert--warn" role="status">
         Lengkapi kebutuhan fasilitas di <a href="<?= u('/seeker/profile.php') ?>">profilmu</a> untuk melihat tingkat kecocokan.
       </p>
     <?php endif; ?>
 
-    <form class="filters panel" method="get" action="<?= u('/seeker/dashboard.php') ?>">
+    <form class="filters panel" method="get" action="<?= u('/lowongan.php') ?>">
       <div class="field">
         <label for="q">Kata kunci</label>
         <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="mis. administrasi">
@@ -78,27 +93,38 @@ require __DIR__ . '/../includes/header.php';
       <ul class="jobs">
         <?php foreach ($shown as $job): ?>
           <li class="job">
-            <?php if ($job['match_total'] > 0): ?>
+            <?php if ($user === null): ?>
+              <p class="badge badge--muted">Masuk untuk lihat kecocokan</p>
+            <?php elseif ($job['match_total'] > 0): ?>
               <p class="badge">Cocok <?= (int) $job['match_count'] ?> dari <?= (int) $job['match_total'] ?> kebutuhanmu (<?= (int) $job['match_percent'] ?>%)</p>
             <?php else: ?>
               <p class="badge badge--muted">Kebutuhanmu belum diisi</p>
             <?php endif; ?>
 
             <h2 class="job__title">
-              <a href="<?= u('/seeker/job_detail.php?id=' . (int) $job['id']) ?>"><?= e($job['title']) ?></a>
+              <a href="<?= u('/lowongan-detail.php?id=' . (int) $job['id']) ?>"><?= e($job['title']) ?></a>
             </h2>
             <p class="job__meta">
               <span><?= e($job['company_name']) ?></span>
               <span><?= e($job['location'] ?: 'Lokasi tidak disebut') ?></span>
               <span><?= e($job['job_type']) ?></span>
             </p>
-            <ul class="chips">
-              <?php foreach ($job['facility_ids'] as $fid): ?>
-                <?php if (in_array($fid, $needs, true)): ?>
-                  <li class="chip chip--on"><?= e($master[$fid]['name'] ?? 'Fasilitas') ?></li>
-                <?php endif; ?>
-              <?php endforeach; ?>
-            </ul>
+
+            <?php if ($user !== null && $needs !== []): ?>
+              <ul class="chips">
+                <?php foreach ($job['facility_ids'] as $fid): ?>
+                  <?php if (in_array($fid, $needs, true)): ?>
+                    <li class="chip chip--on"><?= e($master[$fid]['name'] ?? 'Fasilitas') ?></li>
+                  <?php endif; ?>
+                <?php endforeach; ?>
+              </ul>
+            <?php else: ?>
+              <ul class="chips">
+                <?php foreach (array_slice($job['facility_ids'], 0, 4) as $fid): ?>
+                  <li class="chip"><?= e($master[$fid]['name'] ?? 'Fasilitas') ?></li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
           </li>
         <?php endforeach; ?>
       </ul>
@@ -117,4 +143,4 @@ require __DIR__ . '/../includes/header.php';
     <?php endif; ?>
   </div>
 </section>
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require __DIR__ . '/includes/footer.php'; ?>

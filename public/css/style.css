@@ -279,7 +279,8 @@ a:focus-visible, button:focus-visible { outline-offset: 3px; }
   align-items: center;
 }
 .band__copy { display: flex; flex-direction: column; gap: 1.1rem; align-items: flex-start; }
-.band__copy p, .band--blue .lead { font-size: clamp(1rem, 1.35vw, 1.5rem); line-height: 1.45; }
+.band__grid--top { grid-template-columns: 1fr 1fr; align-items: start; }
+.lead, .band__copy p { font-size: clamp(1.05rem, 1.35vw, 1.45rem); line-height: 1.5; max-width: 62ch; }
 .hl { color: var(--magenta); }
 .band--blue .hl { color: var(--pink); }
 .band--gold .hl { color: var(--ink); }
@@ -342,9 +343,10 @@ a:focus-visible, button:focus-visible { outline-offset: 3px; }
 /* ---------- Kepala seksi gaya IDA ---------- */
 .head-row {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
+  row-gap: 1.5rem;
   flex-wrap: wrap;
   margin-bottom: clamp(1.25rem, 2.4vw, 2rem);
 }
@@ -517,11 +519,13 @@ a:focus-visible, button:focus-visible { outline-offset: 3px; }
 /* ---------- Ceklis ---------- */
 .checklist { display: grid; gap: 0.55rem; }
 .checklist li { position: relative; padding-left: 1.45rem; font-size: 0.9375rem; }
+.checklist--lg { gap: 1rem; border-top: 2px solid var(--ink); padding-top: clamp(0.9rem, 1.6vw, 1.25rem); }
+.checklist--lg li { font-size: 1.125rem; line-height: 1.5; }
 .checklist li::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.58em;
+  top: 0.62em;
   width: 0.65rem;
   height: 0.65rem;
   background: var(--magenta);
@@ -659,15 +663,6 @@ a:focus-visible, button:focus-visible { outline-offset: 3px; }
 
 .fieldset { border: 1px solid var(--line); padding: 1rem; margin: 0; }
 .fieldset legend { padding: 0 0.4rem; }
-.fieldset__group + .fieldset__group { margin-top: 1rem; }
-.fieldset__label {
-  font-size: var(--fs-micro);
-  font-weight: 800;
-  letter-spacing: var(--tr-caps);
-  text-transform: uppercase;
-  color: var(--blue);
-  margin-bottom: 0.4rem;
-}
 .checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.35rem 1rem; }
 .check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem; }
 .check input { width: 1.1rem; height: 1.1rem; accent-color: var(--blue); }

@@ -7,7 +7,7 @@ require_once __DIR__ . '/../helpers/auth_guard.php';
 
 $existing = auth_user($pdo);
 if ($existing !== null) {
-    redirect($existing['role'] === 'company' ? '/company/dashboard.php' : '/seeker/dashboard.php');
+    redirect($existing['role'] === 'company' ? '/company/dashboard.php' : '/lowongan.php');
 }
 
 $errors = [];
@@ -32,7 +32,7 @@ if (is_post()) {
             $_SESSION['role'] = $row['role'];
 
             flash('ok', 'Selamat datang, ' . $row['name'] . '.');
-            redirect($row['role'] === 'company' ? '/company/dashboard.php' : '/seeker/dashboard.php');
+            redirect($row['role'] === 'company' ? '/company/dashboard.php' : '/lowongan.php');
         }
         // Pesan sama untuk email tidak dikenal maupun sandi salah.
         $errors[] = 'Email atau kata sandi salah.';

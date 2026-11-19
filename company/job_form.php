@@ -105,10 +105,6 @@ if (is_post()) {
 }
 
 $master  = accommodation_names($pdo);
-$grouped = [];
-foreach ($master as $accId => $row) {
-    $grouped[$row['category']][$accId] = $row['name'];
-}
 
 $pageTitle = $id > 0 ? 'Edit lowongan' : 'Pasang lowongan';
 $active    = $id > 0 ? 'dash' : 'new';
@@ -164,21 +160,17 @@ require __DIR__ . '/../includes/header.php';
 
       <fieldset class="fieldset">
         <legend>Fasilitas akomodasi yang disediakan</legend>
-        <?php foreach ($grouped as $category => $items): ?>
-          <div class="fieldset__group">
-            <p class="fieldset__label"><?= e($category) ?></p>
-            <ul class="checks">
-              <?php foreach ($items as $accId => $label): ?>
-                <li>
-                  <label class="check">
-                    <input type="checkbox" name="facilities[]" value="<?= $accId ?>" <?= in_array($accId, $selected, true) ? 'checked' : '' ?>>
-                    <span><?= e($label) ?></span>
-                  </label>
-                </li>
-              <?php endforeach; ?>
-            </ul>
-          </div>
-        <?php endforeach; ?>
+        <p class="form-note">Centang fasilitas yang benar-benar tersedia di perusahaanmu.</p>
+        <ul class="checks">
+          <?php foreach ($master as $accId => $row): ?>
+            <li>
+              <label class="check">
+                <input type="checkbox" name="facilities[]" value="<?= $accId ?>" <?= in_array($accId, $selected, true) ? 'checked' : '' ?>>
+                <span><?= e($row['name']) ?></span>
+              </label>
+            </li>
+          <?php endforeach; ?>
+        </ul>
       </fieldset>
 
       <button class="btn" type="submit">Simpan lowongan <span class="btn__arrow" aria-hidden="true">↗</span></button>

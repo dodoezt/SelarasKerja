@@ -32,7 +32,7 @@ function require_role(PDO $pdo, string $role): array
 {
     $user = require_login($pdo);
     if ($user['role'] !== $role) {
-        redirect($user['role'] === 'company' ? '/company/dashboard.php' : '/seeker/dashboard.php');
+        redirect($user['role'] === 'company' ? '/company/dashboard.php' : '/lowongan.php');
     }
     return $user;
 }

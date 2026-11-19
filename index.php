@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 // Sudah login: langsung ke dashboard sesuai peran.
 $user = auth_user($pdo);
 if ($user !== null) {
-    redirect($user['role'] === 'company' ? '/company/dashboard.php' : '/seeker/dashboard.php');
+    redirect($user['role'] === 'company' ? '/company/dashboard.php' : '/lowongan.php');
 }
 
 $stats = [
@@ -54,7 +54,7 @@ require __DIR__ . '/includes/header.php';
           <span class="hl">fasilitas yang benar-benar disediakan perusahaan</span>,
           lalu menampilkan hasilnya terbuka sebelum kamu melamar.
         </p>
-        <a class="btn btn--paper" href="<?= u('/auth/login.php') ?>">Jelajahi lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
+        <a class="btn btn--paper" href="<?= u('/lowongan.php') ?>">Jelajahi lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
         <ul class="stats--stack">
           <li class="stat">
             <span class="stat__num"><?= number_format((int) $stats['Fasilitas akomodasi'], 0, ',', '.') ?></span>
@@ -71,23 +71,27 @@ require __DIR__ . '/includes/header.php';
 
   <section class="band band--white" aria-labelledby="why-title">
     <div class="wrap">
-      <p class="kicker">Kenapa berbeda</p>
-      <h2 class="visually-hidden" id="why-title">Alasan platform ini berbeda</h2>
-      <p class="lead narrow">
-        Sejak awal, pelamar disabilitas menghadapi dua hambatan sekaligus:
-        <span class="hl">informasi fasilitas hampir tidak pernah disebut</span>, dan
-        <span class="hl">proses seleksi tidak transparan soal kesesuaian</span>.
-        Kami menutup celah itu dengan satu angka yang terlihat sejak daftar lowongan:
-        <span class="hl">Cocok X dari Y kebutuhanmu</span>.
-      </p>
-      <ul class="checklist" style="margin-top:1.25rem">
-        <li>Centang kebutuhan akomodasi sekali di profil, dipakai untuk semua lowongan.</li>
-        <li>Rincian centang hijau dan silang pada halaman detail lowongan.</li>
-        <li>Perusahaan melihat kandidat yang kebutuhannya sudah selaras.</li>
-      </ul>
-      <p style="margin-top:1.25rem">
+      <div class="head-row">
+        <div>
+          <p class="kicker">Kenapa berbeda</p>
+          <h2 class="section-title" id="why-title">Dua hambatan, satu angka</h2>
+        </div>
         <a class="btn" href="<?= u('/auth/register.php') ?>">Daftar sebagai pelamar <span class="btn__arrow" aria-hidden="true">↗</span></a>
-      </p>
+      </div>
+      <div class="band__grid band__grid--top">
+        <p class="lead">
+          Sejak awal, pelamar disabilitas menghadapi dua hambatan sekaligus:
+          <span class="hl">informasi fasilitas hampir tidak pernah disebut</span>, dan
+          <span class="hl">proses seleksi tidak transparan soal kesesuaian</span>.
+          Kami menutup celah itu dengan satu angka yang terlihat sejak daftar lowongan:
+          <span class="hl">Cocok X dari Y kebutuhanmu</span>.
+        </p>
+        <ul class="checklist checklist--lg">
+          <li>Centang kebutuhan akomodasi sekali di profil, dipakai untuk semua lowongan.</li>
+          <li>Rincian centang hijau dan silang pada halaman detail lowongan.</li>
+          <li>Perusahaan melihat kandidat yang kebutuhannya sudah selaras.</li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -129,7 +133,7 @@ require __DIR__ . '/includes/header.php';
           <p class="kicker">Alur pelamar</p>
           <h2 class="section-title" id="story-title">Cerita kecocokan</h2>
         </div>
-        <a class="btn" href="<?= u('/auth/login.php') ?>">Masuk untuk mencoba <span class="btn__arrow" aria-hidden="true">↗</span></a>
+        <a class="btn" href="<?= u('/lowongan.php') ?>">Lihat lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
       </div>
       <div class="story">
         <figure class="story__figure">
@@ -154,7 +158,7 @@ require __DIR__ . '/includes/header.php';
           <p class="kicker">Lowongan terbaru</p>
           <h2 class="section-title" id="jobs-title">Lowongan terbuka</h2>
         </div>
-        <a class="btn" href="<?= u('/auth/login.php') ?>">Semua lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
+        <a class="btn" href="<?= u('/lowongan.php') ?>">Semua lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
       </div>
 
       <?php if ($latestJobs === []): ?>

@@ -26,7 +26,7 @@ require __DIR__ . '/../includes/header.php';
     <h1 class="section__title">Lamaran saya</h1>
 
     <?php if ($applications === []): ?>
-      <p class="empty">Belum ada lamaran. <a href="<?= u('/seeker/dashboard.php') ?>">Lihat lowongan terbuka</a>.</p>
+      <p class="empty">Belum ada lamaran. <a href="<?= u('/lowongan.php') ?>">Lihat lowongan terbuka</a>.</p>
     <?php else: ?>
       <ul class="apps">
         <?php foreach ($applications as $row): ?>

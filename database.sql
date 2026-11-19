@@ -92,15 +92,11 @@ INSERT INTO accommodations (name, category) VALUES
   ('Remote Work', 'Pengaturan kerja'),
   ('Jam Kerja Fleksibel', 'Pengaturan kerja'),
   ('Akses Kursi Roda', 'Bangunan fisik'),
-  ('Lift / Ramp', 'Bangunan fisik'),
   ('Toilet Aksesibel', 'Bangunan fisik'),
   ('Juru Bahasa Isyarat', 'Pendampingan komunikasi'),
-  ('Pendamping Kerja', 'Pendampingan komunikasi'),
   ('Screen Reader Friendly', 'Sistem kerja'),
   ('Teks Besar & Kontras Tinggi', 'Materi kerja'),
-  ('Materi Braille', 'Materi kerja'),
-  ('Kebijakan Anti Diskriminasi', 'Kebijakan'),
-  ('Waktu Istirahat Tambahan', 'Pengaturan kerja');
+  ('Materi Braille', 'Materi kerja');
 
 -- ---------- Akun demo (password: rahasia123) ----------
 INSERT INTO users (name, email, password, role) VALUES
@@ -112,9 +108,15 @@ INSERT INTO seeker_profiles (user_id, phone, bio, skills, other_needs) VALUES
   (1, '081200000001', 'Lulusan Administrasi Perkantoran, pengguna kursi roda.', 'Administrasi, data entry, Excel', 'Butuh meja kerja yang dapat disesuaikan ketinggiannya'),
   (2, '081200000002', 'Desainer grafis lepas, pengguna screen reader.', 'Desain, Illustrator, HTML/CSS', NULL);
 
-INSERT INTO seeker_accommodations (seeker_id, accommodation_id) VALUES
-  (1, 3), (1, 4), (1, 5), (1, 2),
-  (2, 1), (2, 8), (2, 9);
+INSERT INTO seeker_accommodations (seeker_id, accommodation_id)
+SELECT u.id, a.id FROM users u JOIN accommodations a
+WHERE u.email = 'pelamar@demo.test'
+  AND a.name IN ('Akses Kursi Roda', 'Toilet Aksesibel', 'Jam Kerja Fleksibel');
+
+INSERT INTO seeker_accommodations (seeker_id, accommodation_id)
+SELECT u.id, a.id FROM users u JOIN accommodations a
+WHERE u.email = 'pelamar2@demo.test'
+  AND a.name IN ('Remote Work', 'Screen Reader Friendly', 'Teks Besar & Kontras Tinggi');
 
 INSERT INTO companies (user_id, company_name, location, description) VALUES
   (3, 'PT Cahaya Nusantara', 'Purwokerto', 'Perusahaan distribusi barang konsumsi dengan tim administrasi 40 orang.');
@@ -127,12 +129,30 @@ INSERT INTO jobs (company_id, title, description, salary, job_type, status) VALU
   (1, 'Staf Rekrutmen', 'Menyaring berkas pelamar dan menjadwalkan wawancara. Jam kerja fleksibel.', 'Rp4.700.000', 'Penuh waktu', 'open'),
   (1, 'Operator Telemarketing (Ditutup)', 'Lowongan lama yang sudah ditutup.', 'Rp3.500.000', 'Paruh waktu', 'closed');
 
-INSERT INTO job_accommodations (job_id, accommodation_id) VALUES
-  (1, 3), (1, 4), (1, 5), (1, 2), (1, 11),
-  (2, 3), (2, 4), (2, 1), (2, 11),
-  (3, 1), (3, 2), (3, 8), (3, 11),
-  (4, 9), (4, 8), (4, 1), (4, 12),
-  (5, 3), (5, 2), (5, 11);
+INSERT INTO job_accommodations (job_id, accommodation_id)
+SELECT j.id, a.id FROM jobs j JOIN accommodations a
+WHERE j.title = 'Staf Administrasi Data'
+  AND a.name IN ('Akses Kursi Roda', 'Toilet Aksesibel', 'Jam Kerja Fleksibel');
+
+INSERT INTO job_accommodations (job_id, accommodation_id)
+SELECT j.id, a.id FROM jobs j JOIN accommodations a
+WHERE j.title = 'Analis Gudang'
+  AND a.name IN ('Akses Kursi Roda', 'Remote Work');
+
+INSERT INTO job_accommodations (job_id, accommodation_id)
+SELECT j.id, a.id FROM jobs j JOIN accommodations a
+WHERE j.title = 'Customer Support Online'
+  AND a.name IN ('Remote Work', 'Jam Kerja Fleksibel', 'Screen Reader Friendly');
+
+INSERT INTO job_accommodations (job_id, accommodation_id)
+SELECT j.id, a.id FROM jobs j JOIN accommodations a
+WHERE j.title = 'Desainer Grafis Junior'
+  AND a.name IN ('Teks Besar & Kontras Tinggi', 'Screen Reader Friendly', 'Remote Work');
+
+INSERT INTO job_accommodations (job_id, accommodation_id)
+SELECT j.id, a.id FROM jobs j JOIN accommodations a
+WHERE j.title = 'Staf Rekrutmen'
+  AND a.name IN ('Akses Kursi Roda', 'Jam Kerja Fleksibel');
 
 INSERT INTO applications (job_id, seeker_id, cover_note, status) VALUES
   (1, 1, 'Saya terbiasa bekerja dengan data dan memakai kursi roda, kantor ini sudah mendukung.', 'reviewed'),

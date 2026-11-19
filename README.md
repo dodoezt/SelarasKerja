@@ -20,7 +20,7 @@ Kaitan SDGs:
 | US-02 | Login & session | `password_verify()`, `session_regenerate_id()`, redirect per peran |
 | US-03 | Proteksi halaman | `require_login()` / `require_role()` di setiap halaman |
 | US-04 | Profil pelamar & kebutuhan akomodasi | Biodata, keahlian, unggah CV PDF, centang fasilitas (tabel pivot) |
-| US-05 | Eksplorasi lowongan & skor kecocokan | `array_intersect` + `usort`, badge "Cocok X dari Y" |
+| US-05 | Eksplorasi lowongan & skor kecocokan | `array_intersect` + `usort`, badge "Cocok X dari Y"; daftar bisa dibuka tanpa akun |
 | US-06 | Detail lowongan & rincian fasilitas | Daftar terpenuhi (✓) vs belum (✕), form lamar |
 | US-07 | Lamaran & riwayat status | Kirim lamaran, pantau Menunggu/Ditinjau/Diterima/Ditolak |
 | US-08 | Profil perusahaan | Nama, lokasi, deskripsi |
@@ -88,8 +88,10 @@ helpers/matcher.php       irisan kebutuhan vs fasilitas, skor
 includes/bootstrap.php    pemuatan awal
 includes/header.php       nav dinamis per peran + pengatur teks
 includes/footer.php
+lowongan.php              jelajah lowongan (publik: tamu + pelamar)
+lowongan-detail.php       detail lowongan + form lamar (publik)
 auth/                     register, login, logout
-seeker/                   dashboard, job_detail, profile, applications
+seeker/                   profile, applications
 company/                  dashboard, profile, job_form, job_delete, applicants
 public/                   css, js, img, fonts, uploads/cv
 database.sql              skema + data awal

@@ -50,7 +50,7 @@ $flash  = take_flash();
     <nav class="nav" aria-label="Navigasi utama">
       <?php if ($user === null): ?>
         <a href="<?= u('/index.php') ?>" <?= $active === 'home' ? 'aria-current="page"' : '' ?>>Beranda</a>
-        <a href="<?= u('/index.php') ?>#lowongan">Lowongan</a>
+        <a href="<?= u('/lowongan.php') ?>" <?= ($active ?? '') === 'jobs' ? 'aria-current="page"' : '' ?>>Lowongan</a>
         <a href="<?= u('/index.php') ?>#fasilitas">Fasilitas</a>
         <a href="<?= u('/index.php') ?>#cara-kerja">Cara Kerja</a>
         <div class="nav__actions">
@@ -58,7 +58,7 @@ $flash  = take_flash();
           <a href="<?= u('/auth/register.php') ?>">Daftar <span aria-hidden="true">↗</span></a>
         </div>
       <?php elseif ($user['role'] === 'seeker'): ?>
-        <a href="<?= u('/seeker/dashboard.php') ?>" <?= $active === 'dash' ? 'aria-current="page"' : '' ?>>Lowongan</a>
+        <a href="<?= u('/lowongan.php') ?>" <?= $active === 'jobs' ? 'aria-current="page"' : '' ?>>Lowongan</a>
         <a href="<?= u('/seeker/applications.php') ?>" <?= $active === 'apps' ? 'aria-current="page"' : '' ?>>Lamaran Saya</a>
         <a href="<?= u('/seeker/profile.php') ?>" <?= $active === 'profile' ? 'aria-current="page"' : '' ?>>Profil</a>
         <div class="nav__actions">

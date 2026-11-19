@@ -85,11 +85,7 @@ if (is_post()) {
     $profile = array_merge($profile, ['phone' => $phone, 'bio' => $bio, 'skills' => $skills, 'other_needs' => $other]);
 }
 
-$master = accommodation_names($pdo);
-$grouped = [];
-foreach ($master as $id => $row) {
-    $grouped[$row['category']][$id] = $row['name'];
-}
+$master  = accommodation_names($pdo);
 
 $pageTitle = 'Profil pelamar';
 $active    = 'profile';
@@ -135,21 +131,16 @@ require __DIR__ . '/../includes/header.php';
       <fieldset class="fieldset">
         <legend>Kebutuhan fasilitas</legend>
         <p class="form-note">Centang fasilitas yang kamu perlukan. Kosongkan kalau tidak ada.</p>
-        <?php foreach ($grouped as $category => $items): ?>
-          <div class="fieldset__group">
-            <p class="fieldset__label"><?= e($category) ?></p>
-            <ul class="checks">
-              <?php foreach ($items as $id => $label): ?>
-                <li>
-                  <label class="check">
-                    <input type="checkbox" name="needs[]" value="<?= $id ?>" <?= in_array($id, $needs, true) ? 'checked' : '' ?>>
-                    <span><?= e($label) ?></span>
-                  </label>
-                </li>
-              <?php endforeach; ?>
-            </ul>
-          </div>
-        <?php endforeach; ?>
+        <ul class="checks">
+          <?php foreach ($master as $id => $row): ?>
+            <li>
+              <label class="check">
+                <input type="checkbox" name="needs[]" value="<?= $id ?>" <?= in_array($id, $needs, true) ? 'checked' : '' ?>>
+                <span><?= e($row['name']) ?></span>
+              </label>
+            </li>
+          <?php endforeach; ?>
+        </ul>
       </fieldset>
 
       <div class="field">

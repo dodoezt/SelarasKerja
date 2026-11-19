@@ -54,7 +54,7 @@ WHERE u.email = 'dewi@demo.test' AND a.name IN ('Remote Work', 'Juru Bahasa Isya
 
 INSERT IGNORE INTO seeker_accommodations (seeker_id, accommodation_id)
 SELECT u.id, a.id FROM users u JOIN accommodations a
-WHERE u.email = 'fajar@demo.test' AND a.name IN ('Akses Kursi Roda', 'Lift / Ramp', 'Remote Work', 'Toilet Aksesibel');
+WHERE u.email = 'fajar@demo.test' AND a.name IN ('Akses Kursi Roda', 'Remote Work', 'Toilet Aksesibel');
 
 INSERT IGNORE INTO seeker_accommodations (seeker_id, accommodation_id)
 SELECT u.id, a.id FROM users u JOIN accommodations a
@@ -89,12 +89,12 @@ FROM companies c WHERE c.company_name = 'Koperasi Bumi Tani'
 INSERT IGNORE INTO job_accommodations (job_id, accommodation_id)
 SELECT j.id, a.id FROM jobs j JOIN accommodations a
 WHERE j.title = 'Operator Data Entry'
-  AND a.name IN ('Remote Work', 'Jam Kerja Fleksibel', 'Screen Reader Friendly', 'Kebijakan Anti Diskriminasi');
+  AND a.name IN ('Remote Work', 'Jam Kerja Fleksibel', 'Screen Reader Friendly', 'Toilet Aksesibel');
 
 INSERT IGNORE INTO job_accommodations (job_id, accommodation_id)
 SELECT j.id, a.id FROM jobs j JOIN accommodations a
 WHERE j.title = 'Staf Customer Relation'
-  AND a.name IN ('Akses Kursi Roda', 'Lift / Ramp', 'Toilet Aksesibel', 'Kebijakan Anti Diskriminasi');
+  AND a.name IN ('Akses Kursi Roda', 'Toilet Aksesibel', 'Jam Kerja Fleksibel');
 
 INSERT IGNORE INTO job_accommodations (job_id, accommodation_id)
 SELECT j.id, a.id FROM jobs j JOIN accommodations a
@@ -104,7 +104,7 @@ WHERE j.title = 'Content Writer Lepas'
 INSERT IGNORE INTO job_accommodations (job_id, accommodation_id)
 SELECT j.id, a.id FROM jobs j JOIN accommodations a
 WHERE j.title = 'Admin Koperasi'
-  AND a.name IN ('Akses Kursi Roda', 'Lift / Ramp', 'Jam Kerja Fleksibel', 'Waktu Istirahat Tambahan');
+  AND a.name IN ('Akses Kursi Roda', 'Jam Kerja Fleksibel', 'Toilet Aksesibel');
 
 -- ---------- 6 lamaran baru (total 8) ----------
 INSERT IGNORE INTO applications (job_id, seeker_id, cover_note, status)
