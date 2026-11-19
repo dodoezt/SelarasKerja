@@ -1,0 +1,10 @@
+# Berkas yang diunggah pengguna tidak ikut repo
+public/uploads/cv/*
+!public/uploads/cv/.gitkeep
+
+# Berkas lokal / editor
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
