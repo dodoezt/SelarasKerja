@@ -29,8 +29,7 @@ require __DIR__ . '/includes/header.php';
     <div class="hero__plate">
       <p class="hero__kicker">Cocok sebelum melamar</p>
       <h1 class="hero__title" id="hero-title">
-        Kerja yang cocok<br>
-        dengan <em>kebutuhanmu</em>
+        Kerja yang cocok<br>dengan <em>kebutuhanmu</em>
       </h1>
       <p class="hero__sub">Representasi pelamar disabilitas — mengubah hak atas kerja layak menjadi akses nyata.</p>
       <div class="hero__actions">

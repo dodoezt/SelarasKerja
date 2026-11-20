@@ -47,7 +47,11 @@ $flash  = take_flash();
       </span>
     </a>
 
-    <nav class="nav" aria-label="Navigasi utama">
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Buka menu">
+      <span class="nav-toggle__bars" aria-hidden="true"></span>
+    </button>
+
+    <nav class="nav" id="site-nav" aria-label="Navigasi utama">
       <?php if ($user === null): ?>
         <a href="<?= u('/index.php') ?>" <?= $active === 'home' ? 'aria-current="page"' : '' ?>>Beranda</a>
         <a href="<?= u('/lowongan.php') ?>" <?= ($active ?? '') === 'jobs' ? 'aria-current="page"' : '' ?>>Lowongan</a>
