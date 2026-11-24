@@ -3,179 +3,164 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
 
-// Publik: tamu boleh melihat detail. Perusahaan diarahkan ke dashboard-nya.
+// Halaman publik: tamu boleh melihat. Perusahaan diarahkan ke dashboard-nya.
 $user = auth_user($pdo);
 if ($user !== null && $user['role'] === 'company') {
     redirect('/company/dashboard.php');
 }
 
-$id    = get_int('id');
-$needs = $user !== null ? seeker_needs($pdo, (int) $user['id']) : [];
-
-$stmt = $pdo->prepare(
-    'SELECT j.*, c.company_name, c.location, c.description AS company_description
-     FROM jobs j JOIN companies c ON c.id = j.company_id
-     WHERE j.id = ? AND j.status = ?'
-);
-$stmt->execute([$id, 'open']);
-$job = $stmt->fetch();
-
-if (!$job) {
-    http_response_code(404);
-    $pageTitle = 'Lowongan tidak ditemukan';
-    $active    = 'jobs';
-    require __DIR__ . '/includes/header.php';
-    echo '<section class="section"><div class="wrap"><h1 class="section__title">Lowongan tidak ditemukan</h1>'
-        . '<p class="section__lede">Lowongan mungkin sudah ditutup. <a href="' . u('/lowongan.php') . '">Kembali ke daftar</a>.</p></div></section>';
-    require __DIR__ . '/includes/footer.php';
-    exit;
-}
-
-$master     = accommodation_names($pdo);
-$facilities = job_facilities_map($pdo, [$id])[$id] ?? [];
-$stats      = match_stats($needs, $facilities);
-$errors     = [];
-$application = null;
-
+$needs    = $user !== null ? seeker_needs($pdo, (int) $user['id']) : [];
+$savedIds = [];
 if ($user !== null) {
-    $stmt = $pdo->prepare('SELECT status, applied_at FROM applications WHERE job_id = ? AND seeker_id = ?');
-    $stmt->execute([$id, (int) $user['id']]);
-    $application = $stmt->fetch() ?: null;
+    $stSaved = $pdo->prepare('SELECT job_id FROM saved_jobs WHERE seeker_id = ?');
+    $stSaved->execute([(int) $user['id']]);
+    $savedIds = array_map('intval', $stSaved->fetchAll(PDO::FETCH_COLUMN));
 }
 
-if (is_post() && $user !== null && $application === null) {
-    $note = trim((string) ($_POST['cover_note'] ?? ''));
+$q     = trim((string) ($_GET['q'] ?? ''));
+$type  = (string) ($_GET['type'] ?? '');
+$accId = get_int('acc');
+$types = ['Penuh waktu', 'Paruh waktu', 'Kontrak', 'Magang', 'Remote'];
 
-    if (!csrf_ok()) {
-        $errors[] = 'Sesi kedaluwarsa. Coba kirim ulang.';
-    }
-    if (mb_strlen($note) > 1000) {
-        $errors[] = 'Catatan lamaran maksimal 1000 karakter.';
-    }
+$jobs  = jobs_with_score($pdo, $needs, ['q' => $q, 'type' => $type, 'acc' => $accId]);
+$per   = 6;
+$pages = max(1, (int) ceil(count($jobs) / $per));
+$page  = min(max(1, get_int('page', 1)), $pages);
+$shown = array_slice($jobs, ($page - 1) * $per, $per);
 
-    if ($errors === []) {
-        try {
-            $pdo->prepare('INSERT INTO applications (job_id, seeker_id, cover_note) VALUES (?, ?, ?)')
-                ->execute([$id, (int) $user['id'], $note]);
-            flash('ok', 'Lamaran terkirim. Pantau statusnya di halaman Lamaran Saya.');
-            redirect('/seeker/applications.php');
-        } catch (PDOException $e) {
-            if ($e->getCode() === '23000') {
-                $errors[] = 'Kamu sudah pernah melamar lowongan ini.';
-            } else {
-                throw $e;
-            }
-        }
-    }
+$master = accommodation_names($pdo);
+
+$query = array_filter(['q' => $q, 'type' => $type, 'acc' => $accId ?: ''], fn ($v) => $v !== '');
+function page_url(array $query, int $page): string
+{
+    return u('/lowongan.php?' . http_build_query($query + ['page' => $page]));
 }
 
-$pageTitle = $job['title'];
+$currentRedirect = '/lowongan.php' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
+
+$pageTitle = 'Jelajah lowongan';
 $active    = 'jobs';
 require __DIR__ . '/includes/header.php';
 ?>
 <section class="section">
   <div class="wrap">
-    <p class="kicker"><a href="<?= u('/lowongan.php') ?>">Lowongan</a> / detail</p>
-    <h1 class="section__title"><?= e($job['title']) ?></h1>
-    <p class="job__meta">
-      <span><?= e($job['company_name']) ?></span>
-      <span><?= e($job['location'] ?: 'Lokasi tidak disebut') ?></span>
-      <span><?= e($job['job_type']) ?></span>
-      <?php if ($job['salary']): ?><span><?= e($job['salary']) ?></span><?php endif; ?>
-    </p>
-
-    <?php foreach ($errors as $error): ?>
-      <p class="alert alert--err" role="alert"><?= e($error) ?></p>
-    <?php endforeach; ?>
-
-    <div class="detail">
-      <div class="detail__main panel">
-        <h2 class="detail__title">Deskripsi pekerjaan</h2>
-        <p><?= nl2br(e($job['description'])) ?></p>
-        <?php if ($job['company_description']): ?>
-          <h2 class="detail__title">Tentang perusahaan</h2>
-          <p><?= nl2br(e($job['company_description'])) ?></p>
-        <?php endif; ?>
+    <div class="section__head">
+      <div>
+        <p class="kicker">Jelajah</p>
+        <h1 class="section__title">Lowongan terbuka</h1>
       </div>
-
-      <aside class="detail__side panel" aria-labelledby="match-title">
-        <h2 class="detail__title" id="match-title">Kecocokan fasilitas</h2>
-
+      <p class="section__lede">
         <?php if ($user === null): ?>
-          <p class="alert alert--warn">Masuk atau daftar untuk melihat berapa kebutuhanmu yang terpenuhi di lowongan ini.</p>
-          <p class="detail__sub">Fasilitas yang disediakan</p>
-          <ul class="chips">
-            <?php foreach ($facilities as $fid): ?>
-              <li class="chip"><?= e($master[$fid]['name'] ?? '') ?></li>
-            <?php endforeach; ?>
-            <?php if ($facilities === []): ?>
-              <li class="chip chip--muted">Belum dicantumkan</li>
-            <?php endif; ?>
-          </ul>
-        <?php elseif ($stats['total'] === 0): ?>
-          <p class="alert alert--warn">Isi <a href="<?= u('/seeker/profile.php') ?>">kebutuhan fasilitasmu</a> untuk melihat kecocokan.</p>
+          Masuk untuk melihat skor kecocokan kebutuhanmu.
         <?php else: ?>
-          <p class="match__score">Cocok <?= (int) $stats['count'] ?> dari <?= (int) $stats['total'] ?> kebutuhanmu (<?= (int) $stats['percent'] ?>%)</p>
-
-          <h3 class="detail__sub">Terpenuhi</h3>
-          <ul class="fac-list">
-            <?php if ($stats['matched'] === []): ?>
-              <li class="fac-list__empty">Belum ada fasilitas yang cocok.</li>
-            <?php endif; ?>
-            <?php foreach ($stats['matched'] as $fid): ?>
-              <li class="fac fac--yes"><span aria-hidden="true">✓</span> <?= e($master[$fid]['name'] ?? '') ?></li>
-            <?php endforeach; ?>
-          </ul>
-
-          <h3 class="detail__sub">Belum terpenuhi</h3>
-          <ul class="fac-list">
-            <?php $missing = array_diff($needs, $facilities); ?>
-            <?php if ($missing === []): ?>
-              <li class="fac-list__empty">Semua kebutuhanmu tersedia.</li>
-            <?php endif; ?>
-            <?php foreach ($missing as $fid): ?>
-              <li class="fac fac--no"><span aria-hidden="true">✕</span> <?= e($master[$fid]['name'] ?? '') ?></li>
-            <?php endforeach; ?>
-          </ul>
-
-          <h3 class="detail__sub">Fasilitas yang disediakan</h3>
-          <ul class="chips">
-            <?php foreach ($facilities as $fid): ?>
-              <li class="chip"><?= e($master[$fid]['name'] ?? '') ?></li>
-            <?php endforeach; ?>
-            <?php if ($facilities === []): ?>
-              <li class="chip chip--muted">Belum dicantumkan</li>
-            <?php endif; ?>
-          </ul>
+          Diurutkan dari kecocokan tertinggi dengan kebutuhanmu.
         <?php endif; ?>
-      </aside>
+      </p>
     </div>
 
-    <div class="panel panel--wide apply">
-      <?php if ($user === null): ?>
-        <h2 class="detail__title">Ingin melamar?</h2>
-        <p class="section__lede">Buat akun pelamar untuk menyimpan CV, melihat skor kecocokan, dan memantau status lamaran.</p>
-        <p class="detail__actions">
-          <a class="btn" href="<?= u('/auth/register.php') ?>">Daftar sebagai pelamar <span class="btn__arrow" aria-hidden="true">↗</span></a>
-          <a class="btn btn--ghost" href="<?= u('/auth/login.php') ?>">Masuk</a>
-        </p>
-      <?php elseif ($application): ?>
-        <h2 class="detail__title">Status lamaranmu</h2>
-        <p class="status <?= e(status_class($application['status'])) ?>"><?= e(status_label($application['status'])) ?></p>
-        <p class="form-note">Dikirim <?= e(date('d M Y H:i', strtotime($application['applied_at']))) ?>.</p>
-      <?php else: ?>
-        <h2 class="detail__title">Lamar lowongan ini</h2>
-        <form class="form" method="post">
-          <?= csrf_field() ?>
-          <div class="field">
-            <label for="cover_note">Catatan lamaran (opsional)</label>
-            <textarea id="cover_note" name="cover_note" rows="4" maxlength="1000"></textarea>
-          </div>
-          <p class="form-note">CV dari profilmu ikut dikirim ke perusahaan. Pastikan sudah diunggah.</p>
-          <button class="btn" type="submit">Kirim lamaran <span class="btn__arrow" aria-hidden="true">↗</span></button>
-        </form>
+    <?php if ($user === null): ?>
+      <p class="alert alert--warn" role="status">
+        Fasilitas tiap lowongan bisa dilihat tanpa akun.
+        <a href="<?= u('/auth/register.php') ?>">Daftar</a> atau <a href="<?= u('/auth/login.php') ?>">masuk</a> untuk melihat berapa yang cocok dengan kebutuhanmu.
+      </p>
+    <?php elseif ($needs === []): ?>
+      <p class="alert alert--warn" role="status">
+        Lengkapi kebutuhan fasilitas di <a href="<?= u('/seeker/profile.php') ?>">profilmu</a> untuk melihat tingkat kecocokan.
+      </p>
+    <?php endif; ?>
+
+    <form class="filters panel" method="get" action="<?= u('/lowongan.php') ?>">
+      <div class="field">
+        <label for="q">Kata kunci</label>
+        <input id="q" name="q" type="search" value="<?= e($q) ?>" placeholder="mis. administrasi">
+      </div>
+      <div class="field">
+        <label for="type">Jenis pekerjaan</label>
+        <select id="type" name="type">
+          <option value="">Semua jenis</option>
+          <?php foreach ($types as $option): ?>
+            <option value="<?= e($option) ?>" <?= $type === $option ? 'selected' : '' ?>><?= e($option) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <div class="field">
+        <label for="acc">Fasilitas</label>
+        <select id="acc" name="acc">
+          <option value="">Semua fasilitas</option>
+          <?php foreach ($master as $id => $row): ?>
+            <option value="<?= $id ?>" <?= $accId === $id ? 'selected' : '' ?>><?= e($row['name']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <button class="btn" type="submit">Terapkan</button>
+    </form>
+
+    <?php if ($shown === []): ?>
+      <p class="empty">Belum ada lowongan yang cocok dengan filter ini. Coba longgarkan filter.</p>
+    <?php else: ?>
+      <ul class="jobs">
+        <?php foreach ($shown as $job): ?>
+          <?php $isSaved = in_array((int) $job['id'], $savedIds, true); ?>
+          <li class="job">
+            <?php if ($user === null): ?>
+              <p class="badge badge--muted">Masuk untuk lihat kecocokan</p>
+            <?php elseif ($job['match_total'] > 0): ?>
+              <p class="badge">Cocok <?= (int) $job['match_count'] ?> dari <?= (int) $job['match_total'] ?> kebutuhanmu (<?= (int) $job['match_percent'] ?>%)</p>
+            <?php else: ?>
+              <p class="badge badge--muted">Kebutuhanmu belum diisi</p>
+            <?php endif; ?>
+
+            <h2 class="job__title">
+              <a href="<?= u('/lowongan-detail.php?id=' . (int) $job['id']) ?>"><?= e($job['title']) ?></a>
+            </h2>
+            <p class="job__meta">
+              <span><?= e($job['company_name']) ?></span>
+              <span><?= e($job['location'] ?: 'Lokasi tidak disebut') ?></span>
+              <span><?= e($job['job_type']) ?></span>
+            </p>
+
+            <?php if ($user !== null && $needs !== []): ?>
+              <ul class="chips">
+                <?php foreach ($job['facility_ids'] as $fid): ?>
+                  <?php if (in_array($fid, $needs, true)): ?>
+                    <li class="chip chip--on"><?= e($master[$fid]['name'] ?? 'Fasilitas') ?></li>
+                  <?php endif; ?>
+                <?php endforeach; ?>
+              </ul>
+            <?php else: ?>
+              <ul class="chips">
+                <?php foreach (array_slice($job['facility_ids'], 0, 4) as $fid): ?>
+                  <li class="chip"><?= e($master[$fid]['name'] ?? 'Fasilitas') ?></li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
+
+            <?php if ($user !== null): ?>
+              <form method="post" action="<?= u('/seeker/bookmark_toggle.php') ?>" style="margin-top: 1rem;">
+                <?= csrf_field() ?>
+                <input type="hidden" name="job_id" value="<?= (int) $job['id'] ?>">
+                <input type="hidden" name="redirect_to" value="<?= e($currentRedirect) ?>">
+                <button class="btn <?= $isSaved ? '' : 'btn--ghost' ?>" type="submit" aria-pressed="<?= $isSaved ? 'true' : 'false' ?>">
+                  <?= $isSaved ? '★ Tersimpan' : '☆ Simpan lowongan' ?>
+                </button>
+              </form>
+            <?php endif; ?>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+
+      <?php if ($pages > 1): ?>
+        <nav class="pager" aria-label="Navigasi halaman">
+          <?php if ($page > 1): ?>
+            <a class="btn btn--ghost" href="<?= e(page_url($query, $page - 1)) ?>">Sebelumnya</a>
+          <?php endif; ?>
+          <span class="pager__info">Halaman <?= $page ?> dari <?= $pages ?> · <?= count($jobs) ?> lowongan</span>
+          <?php if ($page < $pages): ?>
+            <a class="btn btn--ghost" href="<?= e(page_url($query, $page + 1)) ?>">Berikutnya</a>
+          <?php endif; ?>
+        </nav>
       <?php endif; ?>
-    </div>
+    <?php endif; ?>
   </div>
 </section>
 <?php require __DIR__ . '/includes/footer.php'; ?>

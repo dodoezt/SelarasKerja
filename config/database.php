@@ -10,7 +10,10 @@ const DB_PASS = '';
 // APP_URL dipakai supaya link/aset tetap benar dari halaman mana pun.
 $rootPath = str_replace('\\', '/', dirname(__DIR__));
 $docRoot  = str_replace('\\', '/', rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/'));
-define('APP_URL', $docRoot !== '' ? str_replace($docRoot, '', $rootPath) : '');
+$appUrl   = ($docRoot !== '' && str_starts_with($rootPath, $docRoot))
+    ? substr($rootPath, strlen($docRoot))
+    : '';
+define('APP_URL', rtrim($appUrl, '/'));
 define('UPLOAD_DIR', $rootPath . '/public/uploads/cv');
 define('UPLOAD_URL', APP_URL . '/public/uploads/cv');
 

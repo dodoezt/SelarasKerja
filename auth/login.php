@@ -65,7 +65,10 @@ require __DIR__ . '/../includes/header.php';
       <button class="btn" type="submit">Masuk <span class="btn__arrow" aria-hidden="true">↗</span></button>
     </form>
 
-    <p class="form-note">Belum punya akun? <a href="<?= u('/auth/register.php') ?>">Daftar di sini</a>.</p>
+    <p class="form-note">
+      <a href="<?= u('/auth/forgot_password.php') ?>">Lupa kata sandi?</a> &middot;
+      Belum punya akun? <a href="<?= u('/auth/register.php') ?>">Daftar di sini</a>.
+    </p>
   </div>
 </section>
 <?php require __DIR__ . '/../includes/footer.php'; ?>

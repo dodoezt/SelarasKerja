@@ -87,6 +87,24 @@ CREATE TABLE applications (
   CONSTRAINT fk_ap_seeker FOREIGN KEY (seeker_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS password_resets (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(150) NOT NULL,
+  token VARCHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_pr_email (email)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS saved_jobs (
+  seeker_id INT NOT NULL,
+  job_id INT NOT NULL,
+  saved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (seeker_id, job_id),
+  CONSTRAINT fk_sj_seeker FOREIGN KEY (seeker_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_sj_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- ---------- Data master fasilitas ----------
 INSERT INTO accommodations (name, category) VALUES
   ('Remote Work', 'Pengaturan kerja'),
