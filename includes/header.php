@@ -22,7 +22,6 @@ $flash  = take_flash();
 
 <div class="util">
   <div class="wrap util__inner">
-    <p class="util__note">Portal kerja inklusif — SDG 8 &amp; SDG 10</p>
     <div class="util__tools">
       <span class="util__label" id="textsize-label">Ukuran teks</span>
       <button type="button" data-text-size="normal" aria-pressed="true" aria-describedby="textsize-label">Normal</button>
