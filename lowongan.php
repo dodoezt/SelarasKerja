@@ -9,7 +9,13 @@ if ($user !== null && $user['role'] === 'company') {
     redirect('/company/dashboard.php');
 }
 
-$needs = $user !== null ? seeker_needs($pdo, (int) $user['id']) : [];
+$needs    = $user !== null ? seeker_needs($pdo, (int) $user['id']) : [];
+$savedIds = [];
+if ($user !== null) {
+    $stSaved = $pdo->prepare('SELECT job_id FROM saved_jobs WHERE seeker_id = ?');
+    $stSaved->execute([(int) $user['id']]);
+    $savedIds = array_map('intval', $stSaved->fetchAll(PDO::FETCH_COLUMN));
+}
 
 $q     = trim((string) ($_GET['q'] ?? ''));
 $type  = (string) ($_GET['type'] ?? '');
@@ -29,6 +35,8 @@ function page_url(array $query, int $page): string
 {
     return u('/lowongan.php?' . http_build_query($query + ['page' => $page]));
 }
+
+$currentRedirect = '/lowongan.php' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
 
 $pageTitle = 'Jelajah lowongan';
 $active    = 'jobs';
@@ -92,6 +100,7 @@ require __DIR__ . '/includes/header.php';
     <?php else: ?>
       <ul class="jobs">
         <?php foreach ($shown as $job): ?>
+          <?php $isSaved = in_array((int) $job['id'], $savedIds, true); ?>
           <li class="job">
             <?php if ($user === null): ?>
               <p class="badge badge--muted">Masuk untuk lihat kecocokan</p>
@@ -124,6 +133,17 @@ require __DIR__ . '/includes/header.php';
                   <li class="chip"><?= e($master[$fid]['name'] ?? 'Fasilitas') ?></li>
                 <?php endforeach; ?>
               </ul>
+            <?php endif; ?>
+
+            <?php if ($user !== null): ?>
+              <form method="post" action="<?= u('/seeker/bookmark_toggle.php') ?>" style="margin-top: 1rem;">
+                <?= csrf_field() ?>
+                <input type="hidden" name="job_id" value="<?= (int) $job['id'] ?>">
+                <input type="hidden" name="redirect_to" value="<?= e($currentRedirect) ?>">
+                <button class="btn <?= $isSaved ? '' : 'btn--ghost' ?>" type="submit" aria-pressed="<?= $isSaved ? 'true' : 'false' ?>">
+                  <?= $isSaved ? '★ Tersimpan' : '☆ Simpan lowongan' ?>
+                </button>
+              </form>
             <?php endif; ?>
           </li>
         <?php endforeach; ?>

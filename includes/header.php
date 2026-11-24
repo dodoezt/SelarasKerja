@@ -64,6 +64,7 @@ $flash  = take_flash();
       <?php elseif ($user['role'] === 'seeker'): ?>
         <a href="<?= u('/index.php') ?>" <?= $active === 'home' ? 'aria-current="page"' : '' ?>>Beranda</a>
         <a href="<?= u('/lowongan.php') ?>" <?= $active === 'jobs' ? 'aria-current="page"' : '' ?>>Lowongan</a>
+        <a href="<?= u('/seeker/saved_jobs.php') ?>" <?= $active === 'saved' ? 'aria-current="page"' : '' ?>>Tersimpan</a>
         <a href="<?= u('/seeker/applications.php') ?>" <?= $active === 'apps' ? 'aria-current="page"' : '' ?>>Lamaran Saya</a>
         <a href="<?= u('/seeker/profile.php') ?>" <?= $active === 'profile' ? 'aria-current="page"' : '' ?>>Profil</a>
         <div class="nav__actions">
