@@ -3,11 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
 
-// Sudah login: langsung ke dashboard sesuai peran.
 $user = auth_user($pdo);
-if ($user !== null) {
-    redirect($user['role'] === 'company' ? '/company/dashboard.php' : '/lowongan.php');
-}
 
 $stats = [
     'Lowongan aktif'      => (int) $pdo->query("SELECT COUNT(*) FROM jobs WHERE status = 'open'")->fetchColumn(),
@@ -34,8 +30,16 @@ require __DIR__ . '/includes/header.php';
       </h1>
       <p class="hero__sub">Representasi pelamar disabilitas — mengubah hak atas kerja layak menjadi akses nyata.</p>
       <div class="hero__actions">
-        <a class="btn btn--paper" href="<?= u('/auth/register.php') ?>">Cari lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
-        <a class="btn btn--on-dark" href="<?= u('/auth/register.php?role=company') ?>">Pasang lowongan</a>
+        <?php if ($user === null): ?>
+          <a class="btn btn--paper" href="<?= u('/auth/register.php') ?>">Cari lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
+          <a class="btn btn--on-dark" href="<?= u('/auth/register.php?role=company') ?>">Pasang lowongan</a>
+        <?php elseif ($user['role'] === 'seeker'): ?>
+          <a class="btn btn--paper" href="<?= u('/lowongan.php') ?>">Cari lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
+          <a class="btn btn--on-dark" href="<?= u('/seeker/applications.php') ?>">Lamaran saya</a>
+        <?php else: ?>
+          <a class="btn btn--paper" href="<?= u('/company/dashboard.php') ?>">Lowongan saya <span class="btn__arrow" aria-hidden="true">↗</span></a>
+          <a class="btn btn--on-dark" href="<?= u('/company/job_form.php') ?>">Pasang lowongan</a>
+        <?php endif; ?>
       </div>
     </div>
   </section>
@@ -76,7 +80,9 @@ require __DIR__ . '/includes/header.php';
           <p class="kicker">Kenapa berbeda</p>
           <h2 class="section-title" id="why-title">Dua hambatan, satu angka</h2>
         </div>
-        <a class="btn" href="<?= u('/auth/register.php') ?>">Daftar sebagai pelamar <span class="btn__arrow" aria-hidden="true">↗</span></a>
+        <?php if ($user === null): ?>
+          <a class="btn" href="<?= u('/auth/register.php') ?>">Daftar sebagai pelamar <span class="btn__arrow" aria-hidden="true">↗</span></a>
+        <?php endif; ?>
       </div>
       <div class="band__grid band__grid--top">
         <p class="lead">
@@ -141,9 +147,9 @@ require __DIR__ . '/includes/header.php';
         </figure>
         <div class="story__body">
           <span class="story__quote" aria-hidden="true">“</span>
-          <h3 class="story__title">Rani tahu fasilitasnya sebelum melamar</h3>
+          <h3 class="story__title">Doni tahu fasilitasnya sebelum melamar</h3>
           <p class="story__sub">Purwakarta — Lowongan administrasi data</p>
-          <p>Rani membutuhkan akses kursi roda, lift atau ramp, dan toilet aksesibel. Dulu ia melamar ke banyak tempat lalu gugur di tahap akhir karena fasilitasnya tidak ada.</p>
+          <p>Doni membutuhkan akses kursi roda, lift atau ramp, dan toilet aksesibel. Dulu ia melamar ke banyak tempat lalu gugur di tahap akhir karena fasilitasnya tidak ada.</p>
           <p>Sekarang ia mencentang tiga kebutuhan itu sekali di profil. Setiap lowongan langsung menampilkan berapa yang terpenuhi, dan daftar diurutkan dari skor tertinggi.</p>
           <p>Kecocokan bukan jaminan diterima. Tapi setidaknya ia tidak lagi menghabiskan waktu pada lowongan yang sejak awal tidak bisa mengakomodasinya.</p>
         </div>
@@ -248,7 +254,13 @@ require __DIR__ . '/includes/header.php';
         dikelompokkan dalam pengaturan kerja, bangunan fisik, pendampingan komunikasi,
         dan kebijakan — <span class="hl">dicentang pelamar, disediakan perusahaan</span>.
       </p>
-      <a class="btn" href="<?= u('/auth/register.php') ?>">Mulai dari kebutuhanmu <span class="btn__arrow" aria-hidden="true">↗</span></a>
+      <?php if ($user === null): ?>
+        <a class="btn" href="<?= u('/auth/register.php') ?>">Mulai dari kebutuhanmu <span class="btn__arrow" aria-hidden="true">↗</span></a>
+      <?php elseif ($user['role'] === 'seeker'): ?>
+        <a class="btn" href="<?= u('/seeker/profile.php') ?>">Kelola kebutuhanmu <span class="btn__arrow" aria-hidden="true">↗</span></a>
+      <?php else: ?>
+        <a class="btn" href="<?= u('/company/job_form.php') ?>">Pasang lowongan <span class="btn__arrow" aria-hidden="true">↗</span></a>
+      <?php endif; ?>
     </div>
   </section>
 
