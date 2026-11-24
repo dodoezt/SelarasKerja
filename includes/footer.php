@@ -23,15 +23,29 @@
           <li><a href="<?= u('/index.php') ?>#lowongan">Lowongan terbuka</a></li>
           <li><a href="<?= u('/index.php') ?>#fasilitas">Fasilitas akomodasi</a></li>
           <li><a href="<?= u('/index.php') ?>#cara-kerja">Cara kerja pencocokan</a></li>
+          <?php if (($user['role'] ?? '') === 'seeker'): ?>
+            <li><a href="<?= u('/seeker/applications.php') ?>">Lamaran Saya</a></li>
+            <li><a href="<?= u('/seeker/profile.php') ?>">Profil Saya</a></li>
+          <?php endif; ?>
         </ul>
       </div>
       <div>
-        <h3>Perusahaan</h3>
-        <ul>
-          <li><a href="<?= u('/auth/register.php?role=company') ?>">Pasang lowongan</a></li>
-          <li><a href="<?= u('/auth/login.php') ?>">Kelola pelamar</a></li>
-        </ul>
-        <h3 style="margin-top:1rem">Aksesibilitas</h3>
+        <?php if (($user['role'] ?? '') !== 'seeker'): ?>
+          <h3>Perusahaan</h3>
+          <ul>
+            <?php if (($user['role'] ?? '') === 'company'): ?>
+              <li><a href="<?= u('/company/job_form.php') ?>">Pasang lowongan</a></li>
+              <li><a href="<?= u('/company/dashboard.php') ?>">Kelola pelamar</a></li>
+              <li><a href="<?= u('/company/profile.php') ?>">Profil Saya</a></li>
+            <?php else: ?>
+              <li><a href="<?= u('/auth/register.php?role=company') ?>">Pasang lowongan</a></li>
+              <li><a href="<?= u('/auth/login.php') ?>">Kelola pelamar</a></li>
+            <?php endif; ?>
+          </ul>
+          <h3 style="margin-top:1rem">Aksesibilitas</h3>
+        <?php else: ?>
+          <h3>Aksesibilitas</h3>
+        <?php endif; ?>
         <p>Ukuran teks dapat diubah lewat tombol Normal / Besar di atas dan di bawah halaman.</p>
       </div>
     </div>

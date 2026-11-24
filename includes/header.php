@@ -58,6 +58,7 @@ $flash  = take_flash();
           <a href="<?= u('/auth/register.php') ?>">Daftar <span aria-hidden="true">↗</span></a>
         </div>
       <?php elseif ($user['role'] === 'seeker'): ?>
+        <a href="<?= u('/index.php') ?>" <?= $active === 'home' ? 'aria-current="page"' : '' ?>>Beranda</a>
         <a href="<?= u('/lowongan.php') ?>" <?= $active === 'jobs' ? 'aria-current="page"' : '' ?>>Lowongan</a>
         <a href="<?= u('/seeker/applications.php') ?>" <?= $active === 'apps' ? 'aria-current="page"' : '' ?>>Lamaran Saya</a>
         <a href="<?= u('/seeker/profile.php') ?>" <?= $active === 'profile' ? 'aria-current="page"' : '' ?>>Profil</a>
@@ -66,6 +67,7 @@ $flash  = take_flash();
           <a href="<?= u('/auth/logout.php') ?>">Keluar <span aria-hidden="true">↗</span></a>
         </div>
       <?php else: ?>
+        <a href="<?= u('/index.php') ?>" <?= $active === 'home' ? 'aria-current="page"' : '' ?>>Beranda</a>
         <a href="<?= u('/company/dashboard.php') ?>" <?= $active === 'dash' ? 'aria-current="page"' : '' ?>>Lowongan Saya</a>
         <a href="<?= u('/company/job_form.php') ?>" <?= $active === 'new' ? 'aria-current="page"' : '' ?>>Pasang Lowongan</a>
         <a href="<?= u('/company/profile.php') ?>" <?= $active === 'profile' ? 'aria-current="page"' : '' ?>>Profil</a>
