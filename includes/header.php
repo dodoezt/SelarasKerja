@@ -47,7 +47,7 @@ $flash  = take_flash();
       </span>
     </a>
 
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Buka menu">
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Buka menu" hidden>
       <span class="nav-toggle__bars" aria-hidden="true"></span>
     </button>
 

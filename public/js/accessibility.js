@@ -26,15 +26,30 @@
   var btn = document.querySelector('.nav-toggle');
   if (!head || !btn) return;
 
+  var mobileNav = window.matchMedia('(max-width: 900px)');
+
   function set(open) {
     head.classList.toggle('is-open', open);
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     btn.setAttribute('aria-label', open ? 'Tutup menu' : 'Buka menu');
   }
 
+  function syncButton() {
+    btn.hidden = !mobileNav.matches;
+    if (btn.hidden) set(false);
+  }
+
   btn.addEventListener('click', function () {
     set(!head.classList.contains('is-open'));
   });
+
+  document.documentElement.classList.add('has-js');
+  syncButton();
+  if (mobileNav.addEventListener) {
+    mobileNav.addEventListener('change', syncButton);
+  } else {
+    window.addEventListener('resize', syncButton);
+  }
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') set(false);
@@ -44,7 +59,4 @@
     if (head.classList.contains('is-open') && !head.contains(e.target)) set(false);
   });
 
-  window.addEventListener('resize', function () {
-    if (window.innerWidth > 900) set(false);
-  });
 })();

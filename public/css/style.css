@@ -823,9 +823,8 @@ a:focus-visible, button:focus-visible { outline-offset: 3px; }
 
 @media (max-width: 900px) {
   .site-head__inner { min-height: 68px; }
-  .nav-toggle { display: inline-flex; }
+  .has-js .nav-toggle:not([hidden]) { display: inline-flex; }
   .nav {
-    display: none;
     position: absolute;
     z-index: 19;
     top: 100%;
@@ -841,7 +840,8 @@ a:focus-visible, button:focus-visible { outline-offset: 3px; }
     max-height: calc(100vh - 4rem);
     overflow-y: auto;
   }
-  .site-head.is-open .nav { display: flex; }
+  .has-js .nav { display: none; }
+  .has-js .site-head.is-open .nav { display: flex; }
   .nav > a,
   .nav__actions a {
     padding: 0.9rem 0;
