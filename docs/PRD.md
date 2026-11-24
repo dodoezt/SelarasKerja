@@ -36,6 +36,7 @@ SelarasKerja menjawab masalah itu dengan mencocokkan kebutuhan akomodasi pelamar
 - **US-01 (Registrasi):** Pengguna dapat mendaftar akun baru dengan mengisi Nama, Email, Password, serta memilih peran (**Pelamar** atau **Perusahaan**).
 - **US-02 (Login & Session):** Pengguna dapat masuk ke sistem dan diarahkan ke _dashboard_ sesuai perannya menggunakan `$_SESSION`.
 - **US-03 (Proteksi Halaman & Akses Publik):** Halaman profil, lamaran, dan kelola lowongan hanya dapat diakses oleh pemilik perannya masing-masing (`seeker`/`company`); pengunjung tanpa login diarahkan ke halaman masuk. Daftar dan detail lowongan sengaja dibiarkan publik (tamu melihat fasilitas tanpa skor kecocokan), dan perusahaan yang membukanya diarahkan ke dashboard-nya.
+- **US-12 (Lupa & Atur Ulang Kata Sandi):** Pengguna dapat mengajukan tautan pemulihan dengan memasukkan email terdaftar. Sistem membuat token acak 32 byte (`random_bytes`) yang disimpan di tabel `password_resets` dan berlaku 30 menit; tautan bersifat sekali pakai (dihapus setelah dipakai atau saat kedaluwarsa). Karena aplikasi berjalan lokal tanpa server email, tautan pemulihan ditampilkan langsung di halaman sebagai simulasi pengiriman.
 
 ### B. Fitur Pelamar (Seeker)
 
@@ -43,6 +44,8 @@ SelarasKerja menjawab masalah itu dengan mencocokkan kebutuhan akomodasi pelamar
 - **US-05 (Eksplorasi Lowongan & Skor Kecocokan):** Pelamar dapat melihat daftar lowongan aktif yang otomatis menampilkan indikator **"Cocok X dari Y kebutuhanmu"** dan diurutkan dari skor kecocokan tertinggi. Daftar yang sama juga dapat dibuka tamu tanpa login (badge diganti ajakan masuk, urutan default tanggal terbaru).
 - **US-06 (Detail Lowongan & Rincian Fasilitas):** Pelamar dapat melihat detail lowongan beserta perbandingan fasilitas mana saja yang terpenuhi (centang hijau) dan yang belum terpenuhi (silang/abu-abu). Halaman detail juga dapat dibuka tamu; rincian cocok/belum terpenuhi hanya muncul untuk pelamar yang sudah mengisi kebutuhan.
 - **US-07 (Melamar & Riwayat Lamaran):** Pelamar dapat mengirim lamaran pada lowongan dan memantau status lamarannya (_Menunggu_, _Ditinjau_, _Diterima_, _Ditolak_).
+
+- **US-13 (Simpan Lowongan):** Pelamar dapat menyimpan atau menghapus lowongan sebagai penanda untuk dilamar nanti (toggle dari daftar lowongan maupun halaman detail). Lowongan tersimpan tampil di halaman Tersimpan lengkap dengan badge skor kecocokan, urut dari yang paling baru disimpan, dan otomatis tidak muncul bila lowongannya sudah ditutup.
 
 ### C. Fitur Perusahaan (Company)
 
@@ -68,9 +71,11 @@ Setiap modul aplikasi wajib memakai fitur yang dipelajari selama praktikum. Peme
 | Relasi tabel / JOIN antar tabel pivot | `helpers/matcher.php`, `company/applicants.php` | US-05, US-06, US-10 |
 | Searching (query `LIKE`) & paginasi (`array_slice`, 6 per halaman) | `lowongan.php`, `helpers/matcher.php` | US-11 |
 | Sorting & array PHP (`array_intersect`, `usort`) | `helpers/matcher.php` | US-05 |
+| Token acak & kedaluwarsa data (`random_bytes`, `password_hash`) | `auth/forgot_password.php`, `auth/reset_password.php` | US-12 |
+| Operasi pivot INSERT/DELETE dengan primary key gabungan | `seeker/bookmark_toggle.php`, `seeker/saved_jobs.php` | US-13 |
 | JavaScript ringan | `public/js/accessibility.js` | pengatur ukuran teks, menu mobile, aksesibilitas |
 
-> Catatan: nama modul praktikum disesuaikan dengan modul resmi asisten. Jumlah modul aplikasi = 11 user story, di atas batas minimal 9.
+> Catatan: nama modul praktikum disesuaikan dengan modul resmi asisten. Jumlah modul aplikasi = 13 user story, di atas batas minimal 9.
 
 ---
 
@@ -86,6 +91,8 @@ Setiap modul aplikasi wajib memakai fitur yang dipelajari selama praktikum. Peme
 2. **Keamanan Dasar:**
 
 - Password di-hash menggunakan `password_hash()` dan diverifikasi dengan `password_verify()`.
+- Pemulihan kata sandi memakai token acak 32 byte yang berlaku 30 menit dan hanya dapat dipakai sekali.
+- Kata sandi baru wajib minimal 8 karakter dan harus dikonfirmasi ulang sebelum disimpan.
 - Semua query database wajib menggunakan _Prepared Statements_ untuk mencegah SQL Injection.
 - Output teks dari user wajib dibersihkan dengan `htmlspecialchars()` untuk mencegah XSS.
 - Validasi tipe file (`.pdf`) dan ukuran maksimal (mis. 2MB) saat unggah CV.
@@ -104,6 +111,8 @@ Setiap modul aplikasi wajib memakai fitur yang dipelajari selama praktikum. Peme
 | `jobs`                  | `id` (PK), `company_id` (FK), `title`, `description`, `salary`, `job_type`, `status` (`'open'`, `'closed'`), `created_at`                | Daftar lowongan pekerjaan                                                                                                              |
 | `job_accommodations`    | `job_id` (FK), `accommodation_id` (FK)                                                                                                   | Pivot fasilitas yang disediakan pada lowongan                                                                                          |
 | `applications`          | `id` (PK), `job_id` (FK), `seeker_id` (FK), `cover_note`, `status` (`'pending'`, `'reviewed'`, `'accepted'`, `'rejected'`), `applied_at` | Data lamaran kerja                                                                                                                     |
+| `saved_jobs`            | `seeker_id` (FK), `job_id` (FK), `saved_at`                                                                                              | Pivot lowongan yang disimpan pelamar (PK gabungan, anti-duplikat)                                                                       |
+| `password_resets`       | `id` (PK), `email` (INDEX), `token` (UNIQUE), `expires_at`, `created_at`                                                                 | Token pemulihan kata sandi sekali pakai (berlaku 30 menit)                                                                              |
 
 ---
 
@@ -154,10 +163,14 @@ SelarasKerja/
 ├── auth/
 │   ├── login.php
 │   ├── register.php
-│   └── logout.php
+│   ├── logout.php
+│   ├── forgot_password.php   # Ajukan tautan pemulihan kata sandi
+│   └── reset_password.php    # Form atur ulang kata sandi via token
 ├── seeker/
 │   ├── profile.php           # Edit biodata, upload CV, centang kebutuhan fasilitas
-│   └── applications.php      # Riwayat & status lamaran
+│   ├── applications.php      # Riwayat & status lamaran
+│   ├── saved_jobs.php        # Daftar lowongan tersimpan
+│   └── bookmark_toggle.php   # Simpan/hapus lowongan (POST)
 ├── company/
 │   ├── dashboard.php         # Ringkasan lowongan perusahaan
 │   ├── profile.php           # Edit profil perusahaan
@@ -184,3 +197,4 @@ SelarasKerja/
 3. **Tahap 3 — Daftar & Detail:** Terapkan `helpers/matcher.php` pada `lowongan.php` dan `lowongan-detail.php`, plus pencarian, filter, dan paginasi (US-11).
 4. **Tahap 4 — Alur Lamaran:** Buat fitur kirim lamaran (`applications`) dan kelola status pelamar di sisi perusahaan.
 5. **Tahap 5 — Poles UI & Aksesibilitas:** Rapikan `style.css` dan uji seluruh alur akun Pelamar serta Perusahaan sebelum demo responsi.
+6. **Tahap 6 — Pemulihan Akun & Simpan Lowongan:** Tambahkan alur lupa kata sandi berbasis token (`password_resets`) dan penanda lowongan tersimpan (`saved_jobs`).

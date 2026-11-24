@@ -27,13 +27,15 @@ Kaitan SDGs:
 | US-09 | Kelola lowongan (CRUD) | Tambah/edit/hapus, buka/tutup, centang fasilitas |
 | US-10 | Manajemen pelamar | Daftar pelamar per lowongan, skor, unduh CV, ubah status |
 | US-11 | Pencarian, filter & paginasi | `LIKE` + filter jenis/fasilitas di SQL, 6 lowongan per halaman via `array_slice` (skor diurutkan di PHP) |
+| US-12 | Lupa & atur ulang kata sandi | Token acak 32 byte di tabel `password_resets`, berlaku 30 menit, sekali pakai; tautan ditampilkan di halaman (tanpa server email) |
+| US-13 | Simpan lowongan | Toggle simpan/hapus dari daftar & detail, halaman Tersimpan dengan skor kecocokan |
 
-Pemetaan fitur praktikum ke modul aplikasi ada di `docs/PRD.md` bagian 2E.
+Total 13 user story/modul terintegrasi (batas minimal responsi 9). Pemetaan fitur praktikum ke modul aplikasi ada di `docs/PRD.md` bagian 2E.
 
 ## Teknologi
 
 - PHP 8 native, PDO dengan prepared statements
-- MariaDB / MySQL (`selaraskerja_db`, 8 tabel)
+- MariaDB / MySQL (`selaraskerja_db`, 10 tabel)
 - HTML5 semantik, CSS vanilla (custom properties, grid/flex, kontras WCAG AA), JavaScript vanilla (pengatur ukuran teks)
 - Font Archivo self-hosted, aset gambar di `public/img/`
 
@@ -47,14 +49,14 @@ Pemetaan fitur praktikum ke modul aplikasi ada di `docs/PRD.md` bagian 2E.
    C:/xampp/mysql/bin/mysql.exe -u root < database.sql
    ```
 
-   Perintah ini membuat database `selaraskerja_db`, 8 tabel, 12 data master fasilitas, dan data demo dasar (3 akun, 6 lowongan).
+   Perintah ini membuat database `selaraskerja_db`, 10 tabel, 8 data master fasilitas, dan data demo dasar (3 akun, 6 lowongan).
 4. Tambah data demo lanjutan (opsional, aman dijalankan berulang):
 
    ```
    C:/xampp/mysql/bin/mysql.exe -u root < seed-extra.sql
    ```
 
-   Hasil akhir: 9 akun, 4 perusahaan, 10 lowongan, 5 pelamar, 8 lamaran.
+   Hasil akhir: 9 akun, 4 perusahaan, 10 lowongan (9 berstatus `open`), 5 pelamar, 8 lamaran.
 5. Sesuaikan kredensial di `config/database.php` bila user/password MySQL berbeda (default: `root` tanpa password).
 6. Pastikan folder `public/uploads/cv/` dapat ditulis oleh web server.
 
@@ -66,7 +68,7 @@ Akun demo (password semua: `rahasia123`):
 
 | Peran | Email | Keterangan |
 | --- | --- | --- |
-| Pelamar | `pelamar@demo.test` | Rani — kursi roda, butuh 4 fasilitas |
+| Pelamar | `pelamar@demo.test` | Rani — kursi roda, butuh 3 fasilitas |
 | Pelamar | `pelamar2@demo.test` | Bagas — screen reader, butuh 3 fasilitas |
 | Pelamar | `dewi@demo.test` | Dewi — tuli, butuh juru bahasa isyarat |
 | Pelamar | `fajar@demo.test` | Fajar — kursi roda, lulusan informatika |
@@ -90,8 +92,8 @@ includes/header.php       nav dinamis per peran + pengatur teks
 includes/footer.php
 lowongan.php              jelajah lowongan (publik: tamu + pelamar)
 lowongan-detail.php       detail lowongan + form lamar (publik)
-auth/                     register, login, logout
-seeker/                   profile, applications
+auth/                     register, login, logout, forgot_password, reset_password
+seeker/                   profile, applications, saved_jobs, bookmark_toggle
 company/                  dashboard, profile, job_form, job_delete, applicants
 public/                   css, js, img, fonts, uploads/cv
 database.sql              skema + data awal
@@ -104,6 +106,7 @@ docs/                     PRD dan panduan responsi
 - Seluruh query memakai prepared statement
 - Semua output teks pengguna dilewatkan `htmlspecialchars()`
 - Token CSRF pada setiap form POST
+- Reset kata sandi: token acak 32 byte (`random_bytes`), berlaku 30 menit, sekali pakai, kata sandi baru minimal 8 karakter
 - Unggah CV: validasi MIME `application/pdf`, maksimal 2 MB, nama berkas diacak
 - Perubahan data selalu dicek kepemilikannya (`company_id` / `seeker_id`)
 
