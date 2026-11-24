@@ -35,13 +35,13 @@ SelarasKerja menjawab masalah itu dengan mencocokkan kebutuhan akomodasi pelamar
 
 - **US-01 (Registrasi):** Pengguna dapat mendaftar akun baru dengan mengisi Nama, Email, Password, serta memilih peran (**Pelamar** atau **Perusahaan**).
 - **US-02 (Login & Session):** Pengguna dapat masuk ke sistem dan diarahkan ke _dashboard_ sesuai perannya menggunakan `$_SESSION`.
-- **US-03 (Proteksi Halaman):** Halaman khusus Pelamar tidak dapat diakses oleh Perusahaan maupun pengunjung tanpa login, dan sebaliknya.
+- **US-03 (Proteksi Halaman & Akses Publik):** Halaman profil, lamaran, dan kelola lowongan hanya dapat diakses oleh pemilik perannya masing-masing (`seeker`/`company`); pengunjung tanpa login diarahkan ke halaman masuk. Daftar dan detail lowongan sengaja dibiarkan publik (tamu melihat fasilitas tanpa skor kecocokan), dan perusahaan yang membukanya diarahkan ke dashboard-nya.
 
 ### B. Fitur Pelamar (Seeker)
 
 - **US-04 (Profil & Kebutuhan Akomodasi):** Pelamar dapat mengisi/memperbarui biodata, keahlian (_skills_), mengunggah file CV (`.pdf`), serta mencentang kebutuhan fasilitas dari daftar master akomodasi.
-- **US-05 (Eksplorasi Lowongan & Skor Kecocokan):** Pelamar dapat melihat daftar lowongan aktif yang otomatis menampilkan indikator **"Cocok X dari Y kebutuhanmu"** dan diurutkan dari skor kecocokan tertinggi.
-- **US-06 (Detail Lowongan & Rincian Fasilitas):** Pelamar dapat melihat detail lowongan beserta perbandingan fasilitas mana saja yang terpenuhi (centang hijau) dan yang belum terpenuhi (silang/abu-abu).
+- **US-05 (Eksplorasi Lowongan & Skor Kecocokan):** Pelamar dapat melihat daftar lowongan aktif yang otomatis menampilkan indikator **"Cocok X dari Y kebutuhanmu"** dan diurutkan dari skor kecocokan tertinggi. Daftar yang sama juga dapat dibuka tamu tanpa login (badge diganti ajakan masuk, urutan default tanggal terbaru).
+- **US-06 (Detail Lowongan & Rincian Fasilitas):** Pelamar dapat melihat detail lowongan beserta perbandingan fasilitas mana saja yang terpenuhi (centang hijau) dan yang belum terpenuhi (silang/abu-abu). Halaman detail juga dapat dibuka tamu; rincian cocok/belum terpenuhi hanya muncul untuk pelamar yang sudah mengisi kebutuhan.
 - **US-07 (Melamar & Riwayat Lamaran):** Pelamar dapat mengirim lamaran pada lowongan dan memantau status lamarannya (_Menunggu_, _Ditinjau_, _Diterima_, _Ditolak_).
 
 ### C. Fitur Perusahaan (Company)
@@ -52,7 +52,7 @@ SelarasKerja menjawab masalah itu dengan mencocokkan kebutuhan akomodasi pelamar
 
 ### D. Pencarian, Filter & Paginasi
 
-- **US-11 (Cari & Filter Lowongan):** Pelamar dapat mencari lowongan berdasarkan kata kunci judul, memfilter berdasarkan jenis pekerjaan dan fasilitas akomodasi tertentu, serta menelusuri hasil per halaman (paginasi) tanpa kehilangan urutan skor kecocokan.
+- **US-11 (Cari & Filter Lowongan):** Pelamar dapat mencari lowongan berdasarkan kata kunci judul, memfilter berdasarkan jenis pekerjaan dan fasilitas akomodasi tertentu, serta menelusuri hasil per halaman (paginasi 6 lowongan per halaman) tanpa kehilangan urutan skor kecocokan. Filter dijalankan lewat query `LIKE`/`=` di SQL; pemotongan per halaman memakai `array_slice` setelah skor dihitung, karena pengurutan skor dilakukan di PHP.
 
 ### E. Pemetaan Modul Praktikum → Modul Aplikasi
 
@@ -66,9 +66,9 @@ Setiap modul aplikasi wajib memakai fitur yang dipelajari selama praktikum. Peme
 | Upload file (validasi `.pdf`, maks 2MB) | `seeker/profile.php` | US-04 |
 | Koneksi database, CRUD, prepared statement | `config/database.php`, `company/job_form.php`, `company/job_delete.php` | US-09 |
 | Relasi tabel / JOIN antar tabel pivot | `helpers/matcher.php`, `company/applicants.php` | US-05, US-06, US-10 |
-| Searching (query `LIKE`) & paginasi (`LIMIT/OFFSET`) | `seeker/dashboard.php` | US-11 |
+| Searching (query `LIKE`) & paginasi (`array_slice`, 6 per halaman) | `lowongan.php`, `helpers/matcher.php` | US-11 |
 | Sorting & array PHP (`array_intersect`, `usort`) | `helpers/matcher.php` | US-05 |
-| JavaScript ringan | `public/js/accessibility.js` | US-06 (konfirmasi), aksesibilitas |
+| JavaScript ringan | `public/js/accessibility.js` | pengatur ukuran teks, menu mobile, aksesibilitas |
 
 > Catatan: nama modul praktikum disesuaikan dengan modul resmi asisten. Jumlah modul aplikasi = 11 user story, di atas batas minimal 9.
 
@@ -131,17 +131,24 @@ $scorePercent = ($totalNeeds > 0) ? round(($matchCount / $totalNeeds) * 100) : 0
 ## 6. Struktur Folder Projek (PHP Native + Vanilla CSS)
 
 ```text
-selaraskerja/
+SelarasKerja/
 ├── config/
-│   └── database.php          # Koneksi PDO / MySQLi
+│   └── database.php          # Koneksi PDO, APP_URL, session_start
 ├── helpers/
+│   ├── functions.php         # Escape output, CSRF, flash, redirect
 │   ├── auth_guard.php        # Cek session login & role
 │   └── matcher.php           # Fungsi hitung skor kecocokan
+├── includes/
+│   ├── bootstrap.php         # Pemuatan awal (database + helpers)
+│   ├── header.php            # Navbar dinamis sesuai role + tombol aksesibilitas
+│   └── footer.php
 ├── public/
 │   ├── css/
-│   │   └── style.css         # Desain Vanilla CSS (High Contrast & Responsive)
+│   │   └── style.css         # Desain Vanilla CSS (high contrast & responsive)
 │   ├── js/
-│   │   └── accessibility.js  # Toggle ukuran font & konfirmasi hapus
+│   │   └── accessibility.js  # Ukuran teks (localStorage) + menu mobile
+│   ├── fonts/                # Font Archivo self-hosted
+│   ├── img/                  # Aset gambar .webp
 │   └── uploads/
 │       └── cv/               # Penyimpanan file CV pelamar
 ├── auth/
@@ -149,8 +156,6 @@ selaraskerja/
 │   ├── register.php
 │   └── logout.php
 ├── seeker/
-│   ├── dashboard.php         # Daftar lowongan terurut skor matching
-│   ├── job_detail.php        # Detail lowongan + rincian fasilitas cocok/tidak + form lamar
 │   ├── profile.php           # Edit biodata, upload CV, centang kebutuhan fasilitas
 │   └── applications.php      # Riwayat & status lamaran
 ├── company/
@@ -159,13 +164,16 @@ selaraskerja/
 │   ├── job_form.php          # Tambah & Edit lowongan + centang fasilitas
 │   ├── job_delete.php        # Hapus lowongan
 │   └── applicants.php        # Lihat pelamar per lowongan & ubah status lamaran
-├── includes/
-│   ├── header.php            # Navbar dinamis sesuai role + tombol aksesibilitas
-│   └── footer.php
-├── database.sql              # File dump SQL + data awal tabel accommodations
-└── index.php                 # Landing page publik
+├── database.sql              # Skema + data awal tabel accommodations
+├── seed-extra.sql            # Data demo tambahan (opsional, aman diulang)
+├── docs/                     # PRD dan panduan responsi
+├── index.php                 # Landing page publik
+├── lowongan.php              # Daftar lowongan + filter & paginasi (publik)
+└── lowongan-detail.php       # Detail lowongan + rincian fasilitas + form lamar (publik)
 
 ```
+
+> Catatan: daftar dan detail lowongan berada di root, bukan di dalam `seeker/`, karena halaman ini publik (tamu boleh melihat fasilitas tanpa skor kecocokan).
 
 ---
 
@@ -173,6 +181,6 @@ selaraskerja/
 
 1. **Tahap 1 — Fondasi:** Buat `database.sql` (lengkap dengan 6–8 _dummy_ data `accommodations`), koneksi database, sistem Register, Login, dan proteksi role.
 2. **Tahap 2 — Inti Matching:** Buat halaman `seeker/profile.php` (simpan centangan ke pivot table) dan `company/job_form.php` (CRUD lowongan + centangan fasilitas).
-3. **Tahap 3 — Dashboard & Detail:** Terapkan `helpers/matcher.php` pada `seeker/dashboard.php` dan `seeker/job_detail.php`, plus pencarian, filter, dan paginasi (US-11).
+3. **Tahap 3 — Daftar & Detail:** Terapkan `helpers/matcher.php` pada `lowongan.php` dan `lowongan-detail.php`, plus pencarian, filter, dan paginasi (US-11).
 4. **Tahap 4 — Alur Lamaran:** Buat fitur kirim lamaran (`applications`) dan kelola status pelamar di sisi perusahaan.
 5. **Tahap 5 — Poles UI & Aksesibilitas:** Rapikan `style.css` dan uji seluruh alur akun Pelamar serta Perusahaan sebelum demo responsi.

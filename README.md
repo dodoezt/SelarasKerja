@@ -18,15 +18,15 @@ Kaitan SDGs:
 | --- | --- | --- |
 | US-01 | Registrasi multi-peran | Daftar sebagai pelamar atau perusahaan, validasi server-side |
 | US-02 | Login & session | `password_verify()`, `session_regenerate_id()`, redirect per peran |
-| US-03 | Proteksi halaman | `require_login()` / `require_role()` di setiap halaman |
+| US-03 | Proteksi halaman & akses publik | `require_login()` / `require_role()` pada halaman privat; daftar & detail lowongan sengaja publik untuk tamu |
 | US-04 | Profil pelamar & kebutuhan akomodasi | Biodata, keahlian, unggah CV PDF, centang fasilitas (tabel pivot) |
 | US-05 | Eksplorasi lowongan & skor kecocokan | `array_intersect` + `usort`, badge "Cocok X dari Y"; daftar bisa dibuka tanpa akun |
-| US-06 | Detail lowongan & rincian fasilitas | Daftar terpenuhi (✓) vs belum (✕), form lamar |
+| US-06 | Detail lowongan & rincian fasilitas | Daftar terpenuhi (✓) vs belum (✕), form lamar; halaman dapat dibuka tamu |
 | US-07 | Lamaran & riwayat status | Kirim lamaran, pantau Menunggu/Ditinjau/Diterima/Ditolak |
 | US-08 | Profil perusahaan | Nama, lokasi, deskripsi |
 | US-09 | Kelola lowongan (CRUD) | Tambah/edit/hapus, buka/tutup, centang fasilitas |
 | US-10 | Manajemen pelamar | Daftar pelamar per lowongan, skor, unduh CV, ubah status |
-| US-11 | Pencarian, filter & paginasi | `LIKE`, filter jenis + fasilitas, `LIMIT/OFFSET` |
+| US-11 | Pencarian, filter & paginasi | `LIKE` + filter jenis/fasilitas di SQL, 6 lowongan per halaman via `array_slice` (skor diurutkan di PHP) |
 
 Pemetaan fitur praktikum ke modul aplikasi ada di `docs/PRD.md` bagian 2E.
 
